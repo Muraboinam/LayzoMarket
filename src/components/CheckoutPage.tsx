@@ -213,20 +213,20 @@ const CheckoutPage: React.FC = () => {
         total: getTotalPrice(),
         items: orderItems,
         customerInfo: {
-          email: userEmail,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          phone: formData.phone,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          zipCode: formData.zipCode,
-          country: formData.country
+          email: userEmail || '',
+          firstName: formData.firstName || '',
+          lastName: formData.lastName || '',
+          phone: formData.phone || '',
+          address: formData.address || '',
+          city: formData.city || '',
+          state: formData.state || '',
+          zipCode: formData.zipCode || '',
+          country: formData.country || 'India'
         },
         paymentDetails: {
-          paymentId: paymentData.razorpay_payment_id,
-          orderId: paymentData.razorpay_order_id,
-          signature: paymentData.razorpay_signature,
+          paymentId: paymentData.razorpay_payment_id || '',
+          orderId: paymentData.razorpay_order_id || null,
+          signature: paymentData.razorpay_signature || null,
           method: 'Razorpay',
           currency: 'INR'
         }
