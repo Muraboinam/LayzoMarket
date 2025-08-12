@@ -6,6 +6,7 @@ interface SuccessOverlayProps {
   isOpen: boolean;
   message: string;
   paymentId?: string;
+  orderNumber?: string;
   onClose: () => void;
 }
 
@@ -13,6 +14,7 @@ const SuccessOverlay: React.FC<SuccessOverlayProps> = ({
   isOpen, 
   message, 
   paymentId, 
+  orderNumber,
   onClose 
 }) => {
   const [countdown, setCountdown] = useState(5);
@@ -83,6 +85,18 @@ const SuccessOverlay: React.FC<SuccessOverlayProps> = ({
               >
                 {message}
               </motion.p>
+
+              {orderNumber && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.45 }}
+                  className="bg-white/10 rounded-lg p-4 mb-4 border border-purple-400/20"
+                >
+                  <p className="text-purple-300 text-sm mb-1">Order Number:</p>
+                  <p className="text-white font-bold text-lg">#{orderNumber}</p>
+                </motion.div>
+              )}
 
               {paymentId && (
                 <motion.div

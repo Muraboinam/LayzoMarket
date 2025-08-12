@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CreditCard, Lock, User, Mail, MapPin, Phone, CheckCircle, AlertCircle, ShoppingBag, Shield } from 'lucide-react';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../config/firebase';
+import { useAuthContext } from '../context/AuthContext';
+import { generateOrderNumber, createOrderData, saveOrderToFirestore } from '../utils/orderUtils';
 import { CartItem } from '../types';
 import Header from './Header';
 import Footer from './Footer';
@@ -25,6 +29,7 @@ interface CheckoutFormData {
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuthContext();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -50,6 +55,7 @@ const CheckoutPage: React.FC = () => {
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [successPaymentId, setSuccessPaymentId] = useState('');
+  const [orderNumber, setOrderNumber] = useState('');
 
   useEffect(() => {
     loadCartItems();
@@ -125,23 +131,59 @@ const CheckoutPage: React.FC = () => {
     }
   };
 
-  const handlePaymentSuccess = (paymentData: any) => {
+  const handlePaymentSuccess = async (paymentData: any) => {
     console.log('Payment successful:', paymentData);
-    setPaymentSuccess(true);
-    setPaymentError(null);
     
-    // Set success message and payment ID
-    setSuccessMessage(`Your order has been processed successfully! You will receive download links via email.`);
-    setSuccessPaymentId(paymentData.razorpay_payment_id);
+    if (!user) {
+      setPaymentError('User not authenticated. Please sign in and try again.');
+      return;
+    }
     
-    // Show success overlay instead of alert
-    setShowSuccessOverlay(true);
+    // Generate order number
+    const generatedOrderNumber = generateOrderNumber();
+    setOrderNumber(generatedOrderNumber);
+    
+    try {
+      // Create order data
+      const orderData = createOrderData(generatedOrderNumber, cartItems, formData, paymentData, user);
+      
+      // Save order to Firestore with retry logic
+      await saveOrderToFirestore(orderData, user.email!);
+      
+      setPaymentSuccess(true);
+      setPaymentError(null);
+      
+      // Set success message with order number
+      setSuccessMessage(`Your order ${generatedOrderNumber} has been processed successfully! You will receive download links via email.`);
+      setSuccessPaymentId(paymentData.razorpay_payment_id);
+      
+      // Show success overlay
+      setShowSuccessOverlay(true);
 
-    // Clear cart and redirect to success page
-    localStorage.removeItem('cartItems');
-    window.dispatchEvent(new Event('cartUpdate'));
+      // Clear cart and dispatch update event
+      localStorage.removeItem('cartItems');
+      window.dispatchEvent(new Event('cartUpdate'));
+      
+    } catch (error) {
+      console.error('Error saving order:', error);
+      
+      // Still show success but with a warning about order saving
+      setPaymentSuccess(true);
+      setPaymentError(null);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Order processing completed but there was an issue saving your order details. Please contact support.';
+      setSuccessMessage(`Payment successful! Order ${generatedOrderNumber} processed. ${errorMessage}`);
+      setSuccessPaymentId(paymentData.razorpay_payment_id);
+      
+      // Show success overlay
+      setShowSuccessOverlay(true);
+
+      // Clear cart
+      localStorage.removeItem('cartItems');
+      window.dispatchEvent(new Event('cartUpdate'));
+    }
   };
-  
+    
   const handleOverlayClose = () => {
     setShowSuccessOverlay(false);
     
@@ -460,7 +502,8 @@ const CheckoutPage: React.FC = () => {
                           phone: formData.phone
                         }}
                         orderDetails={{
-                          description: `LayzoMarket - ${getTotalItems()} digital template${getTotalItems() > 1 ? 's' : ''}`
+                          description: `LayzoMarket - ${getTotalItems()} digital template${getTotalItems() > 1 ? 's' : ''}`,
+                          orderId: orderNumber || generateOrderNumber()
                         }}
                         onSuccess={handlePaymentSuccess}
                         onError={handlePaymentError}
@@ -602,6 +645,7 @@ const CheckoutPage: React.FC = () => {
         isOpen={showSuccessOverlay}
         message={successMessage}
         paymentId={successPaymentId}
+        orderNumber={orderNumber}
         onClose={handleOverlayClose}
       />
 
