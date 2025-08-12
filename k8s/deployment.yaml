@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: layzomarket-frontend
+  namespace: layzomarket
+  labels:
+    app: layzomarket-frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: layzomarket-frontend
+  template:
+    metadata:
+      labels:
+        app: layzomarket-frontend
+    spec:
+      containers:
+      - name: layzomarket-frontend
+        image: layzomarket/frontend:latest
+        ports:
+        - containerPort: 5058
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5058
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5058
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        env:
+        - name: NODE_ENV
+          value: "production"

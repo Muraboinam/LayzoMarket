@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: layzomarket-config
+  namespace: layzomarket
+data:
+  # Add your environment variables here
+  NODE_ENV: "production"
+  REACT_APP_API_URL: "https://api.layzomarket.com"
+  # Note: Add your Firebase config and other environment variables as needed

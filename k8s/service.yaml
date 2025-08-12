@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: layzomarket-frontend-service
+  namespace: layzomarket
+  labels:
+    app: layzomarket-frontend
+spec:
+  selector:
+    app: layzomarket-frontend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 5058
+    protocol: TCP
+  type: ClusterIP
