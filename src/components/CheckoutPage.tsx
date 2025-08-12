@@ -208,7 +208,7 @@ const CheckoutPage: React.FC = () => {
       const newOrder: Order = {
         id: generatedOrderNumber,
         orderNumber: generatedOrderNumber,
-        orderDate: serverTimestamp(),
+        orderDate: new Date(),
         status: 'completed',
         total: getTotalPrice(),
         items: orderItems,
@@ -712,7 +712,6 @@ const CheckoutPage: React.FC = () => {
                     <li>• Instant download after payment</li>
                     <li>• Full source code and assets</li>
                     <li>• Commercial use license</li>
-                    <li>• 30-day money-back guarantee</li>
                   </ul>
                 </div>
               </div>
