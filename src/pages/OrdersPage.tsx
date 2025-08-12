@@ -1,53 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, Download, Calendar, Search, Filter, Eye, RefreshCw } from 'lucide-react';
-import { collection, query, getDocs, orderBy } from 'firebase/firestore';
-import { db } from '../config/firebase';
 import { useAuthContext } from '../context/AuthContext';
-import { fetchUserOrders, OrderData } from '../utils/orderUtils';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+
+interface Order {
+  id: string;
+  orderNumber: string;
+  date: string;
+  status: 'completed' | 'pending' | 'failed';
+  total: number;
+  items: {
+    id: string;
+    title: string;
+    price: number;
+    image: string;
+    downloadUrl?: string;
+  }[];
+  paymentMethod: string;
+  paymentId?: string;
+}
 
 const OrdersPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthContext();
-  const [orders, setOrders] = useState<OrderData[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending' | 'failed'>('all');
 
   useEffect(() => {
-    if (user) {
-      loadUserOrders();
-    } else {
+    // Simulate loading orders
+    // In a real app, you would fetch orders from your backend/Firestore
+    setTimeout(() => {
+      setOrders([
+        // Mock order data - replace with actual data fetching
+        {
+          id: '1',
+          orderNumber: 'LM-2025-001',
+          date: '2025-01-15',
+          status: 'completed',
+          total: 4199,
+          items: [
+            {
+              id: '1',
+              title: 'Modern E-commerce Template',
+              price: 4199,
+              image: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg',
+              downloadUrl: '#'
+            }
+          ],
+          paymentMethod: 'Razorpay',
+          paymentId: 'pay_123456789'
+        }
+      ]);
       setLoading(false);
-    }
-  }, [user]);
-
-  const loadUserOrders = async () => {
-    if (!user || !user.email) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const fetchedOrders = await fetchUserOrders(user.email);
-      setOrders(fetchedOrders);
-      
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-      setOrders([]); // Set empty array on error
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRefreshOrders = () => {
-    if (user) {
-      loadUserOrders();
-    }
-  };
+    }, 1000);
+  }, []);
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -120,7 +130,7 @@ const OrdersPage: React.FC = () => {
                 />
               </div>
               
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
                 <Filter className="w-5 h-5 text-purple-300" />
                 <select
                   value={statusFilter}
@@ -132,15 +142,6 @@ const OrdersPage: React.FC = () => {
                   <option value="pending">Pending</option>
                   <option value="failed">Failed</option>
                 </select>
-                
-                <button
-                  onClick={handleRefreshOrders}
-                  disabled={loading}
-                  className="bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white px-4 py-3 rounded-lg transition-colors flex items-center space-x-2"
-                >
-                  <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                  <span>Refresh</span>
-                </button>
               </div>
             </div>
           </div>
@@ -179,7 +180,7 @@ const OrdersPage: React.FC = () => {
                       <div className="flex items-center space-x-4 text-sm text-purple-200">
                         <div className="flex items-center space-x-1">
                           <Calendar className="w-4 h-4" />
-                          <span>{order.createdAt instanceof Date ? order.createdAt.toLocaleDateString() : new Date(order.createdAt).toLocaleDateString()}</span>
+                          <span>{new Date(order.date).toLocaleDateString()}</span>
                         </div>
                         <span>•</span>
                         <span>{order.items.length} item{order.items.length > 1 ? 's' : ''}</span>
@@ -206,8 +207,7 @@ const OrdersPage: React.FC = () => {
                         />
                         <div className="flex-1">
                           <h4 className="text-white font-medium">{item.title}</h4>
-                          <p className="text-purple-300">₹{item.price.toLocaleString('en-IN')} x {item.quantity}</p>
-                          <p className="text-purple-400 text-xs capitalize">{item.category} - {item.subcategory}</p>
+                          <p className="text-purple-300">₹{item.price.toLocaleString('en-IN')}</p>
                         </div>
                         
                         {order.status === 'completed' && (
@@ -216,29 +216,17 @@ const OrdersPage: React.FC = () => {
                               <Eye className="w-4 h-4" />
                               <span>View</span>
                             </button>
-                            {item.downloadUrl && item.downloadUrl !== '#' && (
-                              <button className="flex items-center space-x-2 bg-green-600/20 hover:bg-green-600/30 text-green-300 px-3 py-2 rounded-lg transition-colors">
-                                <Download className="w-4 h-4" />
-                                <span>Download</span>
-                              </button>
-                            )}
                           </div>
                         )}
                       </div>
                     ))}
                   </div>
 
-                  {order.paymentInfo?.paymentId && (
+                  {order.paymentId && (
                     <div className="mt-4 pt-4 border-t border-purple-300/20">
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center justify-between">
-                          <span className="text-purple-200">Payment ID:</span>
-                          <span className="text-white font-mono">{order.paymentInfo.paymentId}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-purple-200">Payment Method:</span>
-                          <span className="text-white">{order.paymentInfo.method}</span>
-                        </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-purple-200">Payment ID:</span>
+                        <span className="text-white font-mono">{order.paymentId}</span>
                       </div>
                     </div>
                   )}
