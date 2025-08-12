@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, Download, Calendar, Search, Filter, Eye, RefreshCw } from 'lucide-react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../config/firebase';
 import { useAuthContext } from '../context/AuthContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -31,33 +33,53 @@ const OrdersPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending' | 'failed'>('all');
 
   useEffect(() => {
-    // Simulate loading orders
-    // In a real app, you would fetch orders from your backend/Firestore
-    setTimeout(() => {
-      setOrders([
-        // Mock order data - replace with actual data fetching
-        {
-          id: '1',
-          orderNumber: 'LM-2025-001',
-          date: '2025-01-15',
-          status: 'completed',
-          total: 4199,
-          items: [
-            {
-              id: '1',
-              title: 'Modern E-commerce Template',
-              price: 4199,
-              image: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg',
-              downloadUrl: '#'
-            }
-          ],
-          paymentMethod: 'Razorpay',
-          paymentId: 'pay_123456789'
+    const fetchOrders = async () => {
+      if (!user?.email) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const userOrdersRef = doc(db, 'orders', user.email);
+        const userOrdersDoc = await getDoc(userOrdersRef);
+        
+        if (userOrdersDoc.exists()) {
+          const data = userOrdersDoc.data();
+          const firestoreOrders = data.orders || [];
+          
+          // Convert Firestore orders to the expected format
+          const convertedOrders: Order[] = firestoreOrders.map((order: any) => ({
+            id: order.id,
+            orderNumber: order.orderNumber,
+            date: order.orderDate?.toDate ? order.orderDate.toDate().toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            status: order.status,
+            total: order.total,
+            items: order.items.map((item: any) => ({
+              id: item.id,
+              title: item.title,
+              price: item.price,
+              image: item.image,
+              downloadUrl: '#' // You can add actual download URLs later
+            })),
+            paymentMethod: order.paymentDetails?.method || 'Razorpay',
+            paymentId: order.paymentDetails?.paymentId
+          }));
+          
+          setOrders(convertedOrders);
+        } else {
+          // No orders found for this user
+          setOrders([]);
         }
-      ]);
-      setLoading(false);
-    }, 1000);
-  }, []);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [user]);
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
