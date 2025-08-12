@@ -26,25 +26,17 @@ const OrdersPage: React.FC = () => {
 
   const loadUserOrders = async () => {
     if (!user || !user.email) {
-      console.log('loadUserOrders: No user or email available');
       setLoading(false);
       return;
     }
 
     try {
       setLoading(true);
-      console.log('loadUserOrders: Starting to fetch orders for user:', user.email);
       const fetchedOrders = await fetchUserOrders(user.email);
-      console.log('loadUserOrders: Successfully fetched orders:', fetchedOrders.length);
       setOrders(fetchedOrders);
       
     } catch (error) {
-      console.error('Error fetching orders in OrdersPage:', {
-        error,
-        userEmail: user.email,
-        errorCode: (error as any)?.code,
-        errorMessage: (error as any)?.message
-      });
+      console.error('Error fetching orders:', error);
       setOrders([]); // Set empty array on error
     } finally {
       setLoading(false);
@@ -52,7 +44,6 @@ const OrdersPage: React.FC = () => {
   };
 
   const handleRefreshOrders = () => {
-    console.log('handleRefreshOrders: Manual refresh triggered');
     if (user) {
       loadUserOrders();
     }
