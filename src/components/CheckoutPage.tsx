@@ -132,23 +132,30 @@ const CheckoutPage: React.FC = () => {
   };
 
   const handlePaymentSuccess = async (paymentData: any) => {
-    console.log('Payment successful:', paymentData);
+    console.log('handlePaymentSuccess triggered with data:', paymentData);
     
     if (!user) {
+      console.error('User not authenticated during payment success');
       setPaymentError('User not authenticated. Please sign in and try again.');
       return;
     }
     
+    console.log('User authenticated:', { email: user.email, uid: user.uid });
+    
     // Generate order number
     const generatedOrderNumber = generateOrderNumber();
     setOrderNumber(generatedOrderNumber);
+    console.log('Generated order number:', generatedOrderNumber);
     
     try {
       // Create order data
       const orderData = createOrderData(generatedOrderNumber, cartItems, formData, paymentData, user);
+      console.log('Created order data:', orderData);
       
       // Save order to Firestore with retry logic
+      console.log('Attempting to save order to Firestore...');
       await saveOrderToFirestore(orderData, user.email!);
+      console.log('saveOrderToFirestore call completed successfully');
       
       setPaymentSuccess(true);
       setPaymentError(null);
@@ -165,7 +172,7 @@ const CheckoutPage: React.FC = () => {
       window.dispatchEvent(new Event('cartUpdate'));
       
     } catch (error) {
-      console.error('Error saving order:', error);
+      console.error('Error during order saving process in CheckoutPage:', error);
       
       // Still show success but with a warning about order saving
       setPaymentSuccess(true);
