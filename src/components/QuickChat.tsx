@@ -78,7 +78,6 @@ const QuickChat: React.FC = () => {
     const messageText = inputMessage;
     setInputMessage('');
     setIsSending(true);
-    setIsTyping(true);
 
     try {
       // Send message to webhook and get response
@@ -152,36 +151,30 @@ const QuickChat: React.FC = () => {
             "Sorry, I'm having trouble processing the response. Please try again.";
         }
 
-        // Simulate typing delay for better UX
-        setTimeout(() => {
-          setIsTyping(false);
-          const botMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            text: botResponseText,
-            sender: 'bot',
-            timestamp: new Date(),
-          };
+        // Add bot response immediately
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: botResponseText,
+          sender: 'bot',
+          timestamp: new Date(),
+        };
 
-          setMessages((prev) => [...prev, botMessage]);
-          console.log('Bot response added to chat:', botResponseText);
-        }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
+        setMessages((prev) => [...prev, botMessage]);
+        console.log('Bot response added to chat:', botResponseText);
       } else {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
     } catch (error) {
       console.error('Failed to send message to webhook:', error);
 
-      setTimeout(() => {
-        setIsTyping(false);
-        const errorMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          text: "Sorry, I'm having trouble connecting right now. Please try again in a moment.",
-          sender: 'bot',
-          timestamp: new Date(),
-        };
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "Sorry, I'm having trouble connecting right now. Please try again in a moment.",
+        sender: 'bot',
+        timestamp: new Date(),
+      };
 
-        setMessages((prev) => [...prev, errorMessage]);
-      }, 1000);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsSending(false);
     }
@@ -376,17 +369,16 @@ const QuickChat: React.FC = () => {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="fixed bottom-8 right-8 z-50 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden"
+            className="fixed bottom-8 right-8 z-50 w-96 bg-gradient-to-br from-purple-900/95 via-indigo-900/95 to-purple-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-purple-500/30 overflow-hidden"
             style={{
               height: isMinimized ? 80 : 600,
-              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
               boxShadow:
-                '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+                '0 25px 50px -12px rgba(139, 92, 246, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.2)',
             }}
           >
             {/* Enhanced Header */}
             <motion.div
-              className="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white p-6 flex items-center justify-between relative overflow-hidden"
+              className="bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 text-white p-6 flex items-center justify-between relative overflow-hidden border-b border-purple-500/30"
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.1 }}
@@ -481,7 +473,7 @@ const QuickChat: React.FC = () => {
                   transition={{ duration: 0.3 }}
                 >
                   {/* Enhanced Messages */}
-                  <div className="h-96 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-gray-50 to-white">
+                  <div className="h-96 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-purple-900/20 to-indigo-900/20">
                     <AnimatePresence>
                       {messages.map((message) => (
                         <motion.div
@@ -505,8 +497,8 @@ const QuickChat: React.FC = () => {
                             <motion.div
                               className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg ${
                                 message.sender === 'user'
-                                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
-                                  : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-600 border-2 border-white'
+                                  ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-2 border-purple-400/50'
+                                  : 'bg-gradient-to-r from-purple-700 to-indigo-700 text-white border-2 border-purple-500/50'
                               }`}
                               whileHover={{ scale: 1.1 }}
                               transition={{
@@ -524,8 +516,8 @@ const QuickChat: React.FC = () => {
                             <motion.div
                               className={`rounded-2xl p-4 shadow-lg backdrop-blur-sm ${
                                 message.sender === 'user'
-                                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
-                                  : 'bg-white text-gray-800 border border-gray-200'
+                                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white border border-purple-400/30'
+                                  : 'bg-gradient-to-r from-purple-800/80 to-indigo-800/80 text-white border border-purple-500/30'
                               }`}
                               whileHover={{ scale: 1.02 }}
                               transition={{
@@ -541,7 +533,7 @@ const QuickChat: React.FC = () => {
                                 className={`text-xs mt-2 ${
                                   message.sender === 'user'
                                     ? 'text-purple-200'
-                                    : 'text-gray-500'
+                                    : 'text-purple-300'
                                 }`}
                               >
                                 {formatTime(message.timestamp)}
@@ -552,56 +544,12 @@ const QuickChat: React.FC = () => {
                       ))}
                     </AnimatePresence>
 
-                    {/* Enhanced Typing Indicator */}
-                    <AnimatePresence>
-                      {isTyping && (
-                        <motion.div
-                          variants={typingIndicatorVariants}
-                          initial="hidden"
-                          animate="visible"
-                          exit="hidden"
-                          className="flex justify-start"
-                        >
-                          <div className="flex items-start space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-                              <Bot className="w-5 h-5" />
-                            </div>
-                            <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-lg">
-                              <div className="flex items-center space-x-2">
-                                <div className="flex space-x-1">
-                                  {[0, 1, 2].map((i) => (
-                                    <motion.div
-                                      key={i}
-                                      className="w-2 h-2 bg-gray-400 rounded-full"
-                                      animate={{
-                                        scale: [1, 1.5, 1],
-                                        opacity: [0.5, 1, 0.5],
-                                      }}
-                                      transition={{
-                                        duration: 1,
-                                        repeat: Infinity,
-                                        delay: i * 0.2,
-                                        ease: 'easeInOut',
-                                      }}
-                                    />
-                                  ))}
-                                </div>
-                                <span className="text-sm text-gray-600">
-                                  AI is typing...
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
                     <div ref={messagesEndRef} />
                   </div>
 
                   {/* Enhanced Input */}
                   <motion.div
-                    className="p-6 bg-white border-t border-gray-200"
+                    className="p-6 bg-gradient-to-r from-purple-800/50 to-indigo-800/50 border-t border-purple-500/30"
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.4 }}
@@ -615,7 +563,7 @@ const QuickChat: React.FC = () => {
                           onChange={(e) => setInputMessage(e.target.value)}
                           onKeyPress={handleKeyPress}
                           placeholder="Type your message..."
-                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
+                          className="w-full px-4 py-3 border-2 border-purple-500/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all duration-200 bg-purple-900/30 hover:bg-purple-900/50 text-white placeholder-purple-300"
                           disabled={isSending}
                           whileFocus={{ scale: 1.02 }}
                           transition={{
@@ -631,14 +579,14 @@ const QuickChat: React.FC = () => {
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0, opacity: 0 }}
                           >
-                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
                           </motion.div>
                         )}
                       </div>
                       <motion.button
                         onClick={handleSendMessage}
                         disabled={!inputMessage.trim() || isSending}
-                        className="p-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 shadow-lg"
+                        className="p-3 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 disabled:from-purple-800 disabled:to-indigo-800 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 shadow-lg border border-purple-400/30"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         animate={isSending ? { rotate: [0, 360] } : {}}
@@ -652,13 +600,13 @@ const QuickChat: React.FC = () => {
                       </motion.button>
                     </div>
                     <motion.p
-                      className="text-xs text-gray-500 mt-3 text-center flex items-center justify-center"
+                      className="text-xs text-purple-300 mt-3 text-center flex items-center justify-center"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.6 }}
                     >
                       <motion.div
-                        className="w-1 h-1 bg-green-400 rounded-full mr-2"
+                        className="w-1 h-1 bg-purple-400 rounded-full mr-2"
                         animate={{
                           scale: [1, 1.5, 1],
                         }}
