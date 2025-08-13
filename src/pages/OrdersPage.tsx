@@ -234,10 +234,6 @@ const OrdersPage: React.FC = () => {
                         
                         {order.status === 'completed' && (
                           <div className="flex space-x-2">
-                            <button className="flex items-center space-x-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 px-3 py-2 rounded-lg transition-colors">
-                              <Eye className="w-4 h-4" />
-                              <span>View</span>
-                            </button>
                           </div>
                         )}
                       </div>

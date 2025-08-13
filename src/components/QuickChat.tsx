@@ -1,5 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, User, Minimize2, Maximize2, Sparkles } from 'lucide-react';
+import {
+  MessageCircle,
+  X,
+  Send,
+  Bot,
+  User,
+  Minimize2,
+  Maximize2,
+  Sparkles,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Message {
@@ -17,8 +26,8 @@ const QuickChat: React.FC = () => {
       id: '1',
       text: 'Hello! Welcome to LayzoMarket. How can I help you today?',
       sender: 'bot',
-      timestamp: new Date()
-    }
+      timestamp: new Date(),
+    },
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -26,7 +35,8 @@ const QuickChat: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const WEBHOOK_URL = 'https://test4532.app.n8n.cloud/webhook-test/b14b33f9-317d-4f78-ba58-e6860f7d6bb2';
+  // Replace this with your actual active n8n webhook URL
+  const WEBHOOK_URL = 'https://test245.app.n8n.cloud/webhook/7d448d54-c186-48db-84a8-92f93073848a';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -45,14 +55,26 @@ const QuickChat: React.FC = () => {
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
+    // Check if webhook URL is configured
+    if (WEBHOOK_URL === 'YOUR_WEBHOOK_URL_HERE') {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "Please configure your webhook URL in the QuickChat component to enable messaging.",
+        sender: 'bot',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+      return;
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       text: inputMessage,
       sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     const messageText = inputMessage;
     setInputMessage('');
     setIsSending(true);
@@ -69,22 +91,22 @@ const QuickChat: React.FC = () => {
           message: messageText,
           timestamp: new Date().toISOString(),
           userId: 'anonymous',
-          source: 'quickchat'
-        })
+          source: 'quickchat',
+        }),
       });
-      
+
       if (response.ok) {
         let botResponseText = '';
-        
+
         try {
           const responseText = await response.text();
           console.log('Raw webhook response:', responseText);
-          
+
           if (responseText.trim()) {
             try {
               const responseData = JSON.parse(responseText);
               console.log('Parsed webhook response:', responseData);
-              
+
               if (Array.isArray(responseData) && responseData.length > 0) {
                 const firstItem = responseData[0];
                 if (firstItem.output) {
@@ -96,10 +118,10 @@ const QuickChat: React.FC = () => {
                 } else if (typeof firstItem === 'string') {
                   botResponseText = firstItem;
                 } else {
-                  botResponseText = 'Thank you for your message. We will get back to you soon!';
+                  botResponseText =
+                    'Thank you for your message. We will get back to you soon!';
                 }
-              }
-              else if (responseData.output) {
+              } else if (responseData.output) {
                 botResponseText = responseData.output;
               } else if (responseData.message) {
                 botResponseText = responseData.message;
@@ -110,20 +132,26 @@ const QuickChat: React.FC = () => {
               } else if (typeof responseData === 'string') {
                 botResponseText = responseData;
               } else {
-                botResponseText = 'Thank you for your message. We will get back to you soon!';
+                botResponseText =
+                  'Thank you for your message. We will get back to you soon!';
               }
             } catch (jsonError) {
-              console.warn('Response is not valid JSON, treating as plain text:', jsonError);
+              console.warn(
+                'Response is not valid JSON, treating as plain text:',
+                jsonError
+              );
               botResponseText = responseText;
             }
           } else {
-            botResponseText = 'Thank you for your message. We will get back to you soon!';
+            botResponseText =
+              'Thank you for your message. We will get back to you soon!';
           }
         } catch (readError) {
           console.error('Failed to read response:', readError);
-          botResponseText = 'Sorry, I\'m having trouble processing the response. Please try again.';
+          botResponseText =
+            "Sorry, I'm having trouble processing the response. Please try again.";
         }
-        
+
         // Simulate typing delay for better UX
         setTimeout(() => {
           setIsTyping(false);
@@ -131,29 +159,28 @@ const QuickChat: React.FC = () => {
             id: (Date.now() + 1).toString(),
             text: botResponseText,
             sender: 'bot',
-            timestamp: new Date()
+            timestamp: new Date(),
           };
-          
-          setMessages(prev => [...prev, botMessage]);
+
+          setMessages((prev) => [...prev, botMessage]);
           console.log('Bot response added to chat:', botResponseText);
         }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
-        
       } else {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
     } catch (error) {
       console.error('Failed to send message to webhook:', error);
-      
+
       setTimeout(() => {
         setIsTyping(false);
         const errorMessage: Message = {
           id: (Date.now() + 1).toString(),
-          text: 'Sorry, I\'m having trouble connecting right now. Please try again in a moment.',
+          text: "Sorry, I'm having trouble connecting right now. Please try again in a moment.",
           sender: 'bot',
-          timestamp: new Date()
+          timestamp: new Date(),
         };
-        
-        setMessages(prev => [...prev, errorMessage]);
+
+        setMessages((prev) => [...prev, errorMessage]);
       }, 1000);
     } finally {
       setIsSending(false);
@@ -174,78 +201,78 @@ const QuickChat: React.FC = () => {
   // Animation variants
   const chatButtonVariants = {
     initial: { scale: 0, rotate: -180 },
-    animate: { 
-      scale: 1, 
+    animate: {
+      scale: 1,
       rotate: 0,
       transition: {
-        type: "spring",
+        type: 'spring',
         stiffness: 260,
-        damping: 20
-      }
+        damping: 20,
+      },
     },
-    hover: { 
+    hover: {
       scale: 1.1,
-      boxShadow: "0 10px 30px rgba(139, 92, 246, 0.4)",
-      transition: { duration: 0.2 }
+      boxShadow: '0 10px 30px rgba(139, 92, 246, 0.4)',
+      transition: { duration: 0.2 },
     },
-    tap: { scale: 0.95 }
+    tap: { scale: 0.95 },
   };
 
   const chatWindowVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 100, 
+    hidden: {
+      opacity: 0,
+      y: 100,
       scale: 0.8,
-      rotateX: -15
+      rotateX: -15,
     },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
+    visible: {
+      opacity: 1,
+      y: 0,
       scale: 1,
       rotateX: 0,
       transition: {
-        type: "spring",
+        type: 'spring',
         stiffness: 300,
         damping: 30,
-        staggerChildren: 0.1
-      }
+        staggerChildren: 0.1,
+      },
     },
-    exit: { 
-      opacity: 0, 
-      y: 100, 
+    exit: {
+      opacity: 0,
+      y: 100,
       scale: 0.8,
       rotateX: -15,
-      transition: { duration: 0.3 }
-    }
+      transition: { duration: 0.3 },
+    },
   };
 
   const messageVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 20, 
-      scale: 0.8 
+    hidden: {
+      opacity: 0,
+      y: 20,
+      scale: 0.8,
     },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
+    visible: {
+      opacity: 1,
+      y: 0,
       scale: 1,
       transition: {
-        type: "spring",
+        type: 'spring',
         stiffness: 500,
-        damping: 30
-      }
-    }
+        damping: 30,
+      },
+    },
   };
 
   const typingIndicatorVariants = {
     hidden: { opacity: 0, scale: 0.8 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       scale: 1,
       transition: {
-        duration: 0.3
-      }
-    }
+        duration: 0.3,
+      },
+    },
   };
 
   return (
@@ -263,7 +290,8 @@ const QuickChat: React.FC = () => {
             onClick={() => setIsOpen(true)}
             className="fixed bottom-8 right-8 z-40 w-16 h-16 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white rounded-full shadow-2xl flex items-center justify-center group overflow-hidden"
             style={{
-              background: "linear-gradient(135deg, #8B5CF6 0%, #6366F1 50%, #8B5CF6 100%)",
+              background:
+                'linear-gradient(135deg, #8B5CF6 0%, #6366F1 50%, #8B5CF6 100%)',
             }}
           >
             {/* Animated background */}
@@ -275,10 +303,10 @@ const QuickChat: React.FC = () => {
               transition={{
                 duration: 8,
                 repeat: Infinity,
-                ease: "linear"
+                ease: 'linear',
               }}
             />
-            
+
             {/* Icon with sparkle effect */}
             <div className="relative">
               <MessageCircle className="w-7 h-7 relative z-10" />
@@ -291,15 +319,15 @@ const QuickChat: React.FC = () => {
                 transition={{
                   duration: 2,
                   repeat: Infinity,
-                  ease: "easeInOut"
+                  ease: 'easeInOut',
                 }}
               >
                 <Sparkles className="w-4 h-4 text-yellow-300" />
               </motion.div>
             </div>
-            
+
             {/* Notification pulse */}
-            <motion.div 
+            <motion.div
               className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg"
               animate={{
                 scale: [1, 1.2, 1],
@@ -307,10 +335,10 @@ const QuickChat: React.FC = () => {
               transition={{
                 duration: 2,
                 repeat: Infinity,
-                ease: "easeInOut"
+                ease: 'easeInOut',
               }}
             >
-              <motion.div 
+              <motion.div
                 className="w-3 h-3 bg-white rounded-full"
                 animate={{
                   opacity: [0.5, 1, 0.5],
@@ -318,7 +346,7 @@ const QuickChat: React.FC = () => {
                 transition={{
                   duration: 1.5,
                   repeat: Infinity,
-                  ease: "easeInOut"
+                  ease: 'easeInOut',
                 }}
               />
             </motion.div>
@@ -333,7 +361,7 @@ const QuickChat: React.FC = () => {
               transition={{
                 duration: 2,
                 repeat: Infinity,
-                ease: "easeOut"
+                ease: 'easeOut',
               }}
             />
           </motion.button>
@@ -351,12 +379,13 @@ const QuickChat: React.FC = () => {
             className="fixed bottom-8 right-8 z-50 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden"
             style={{
               height: isMinimized ? 80 : 600,
-              background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)"
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+              boxShadow:
+                '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
             }}
           >
             {/* Enhanced Header */}
-            <motion.div 
+            <motion.div
               className="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white p-6 flex items-center justify-between relative overflow-hidden"
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -366,29 +395,30 @@ const QuickChat: React.FC = () => {
               <motion.div
                 className="absolute inset-0 opacity-10"
                 style={{
-                  backgroundImage: "radial-gradient(circle at 20% 50%, white 2px, transparent 2px), radial-gradient(circle at 80% 50%, white 2px, transparent 2px)",
-                  backgroundSize: "30px 30px"
+                  backgroundImage:
+                    'radial-gradient(circle at 20% 50%, white 2px, transparent 2px), radial-gradient(circle at 80% 50%, white 2px, transparent 2px)',
+                  backgroundSize: '30px 30px',
                 }}
                 animate={{
-                  backgroundPosition: ["0px 0px", "30px 30px"],
+                  backgroundPosition: ['0px 0px', '30px 30px'],
                 }}
                 transition={{
                   duration: 10,
                   repeat: Infinity,
-                  ease: "linear"
+                  ease: 'linear',
                 }}
               />
-              
+
               <div className="flex items-center space-x-4 relative z-10">
-                <motion.div 
+                <motion.div
                   className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/30"
                   whileHover={{ scale: 1.05, rotate: 5 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 10 }}
                 >
                   <Bot className="w-6 h-6" />
                 </motion.div>
                 <div>
-                  <motion.h3 
+                  <motion.h3
                     className="font-bold text-lg"
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
@@ -396,7 +426,7 @@ const QuickChat: React.FC = () => {
                   >
                     LayzoMarket Support
                   </motion.h3>
-                  <motion.p 
+                  <motion.p
                     className="text-sm opacity-90 flex items-center"
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
@@ -410,7 +440,7 @@ const QuickChat: React.FC = () => {
                       transition={{
                         duration: 2,
                         repeat: Infinity,
-                        ease: "easeInOut"
+                        ease: 'easeInOut',
                       }}
                     />
                     Online now
@@ -424,7 +454,11 @@ const QuickChat: React.FC = () => {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >
-                  {isMinimized ? <Maximize2 className="w-5 h-5" /> : <Minimize2 className="w-5 h-5" />}
+                  {isMinimized ? (
+                    <Maximize2 className="w-5 h-5" />
+                  ) : (
+                    <Minimize2 className="w-5 h-5" />
+                  )}
                 </motion.button>
                 <motion.button
                   onClick={() => setIsOpen(false)}
@@ -442,7 +476,7 @@ const QuickChat: React.FC = () => {
               {!isMinimized && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
+                  animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.3 }}
                 >
@@ -455,19 +489,31 @@ const QuickChat: React.FC = () => {
                           variants={messageVariants}
                           initial="hidden"
                           animate="visible"
-                          className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                          className={`flex ${
+                            message.sender === 'user'
+                              ? 'justify-end'
+                              : 'justify-start'
+                          }`}
                         >
-                          <div className={`flex items-start space-x-3 max-w-xs ${
-                            message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''
-                          }`}>
-                            <motion.div 
+                          <div
+                            className={`flex items-start space-x-3 max-w-xs ${
+                              message.sender === 'user'
+                                ? 'flex-row-reverse space-x-reverse'
+                                : ''
+                            }`}
+                          >
+                            <motion.div
                               className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg ${
-                                message.sender === 'user' 
-                                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' 
+                                message.sender === 'user'
+                                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
                                   : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-600 border-2 border-white'
                               }`}
                               whileHover={{ scale: 1.1 }}
-                              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                              transition={{
+                                type: 'spring',
+                                stiffness: 400,
+                                damping: 10,
+                              }}
                             >
                               {message.sender === 'user' ? (
                                 <User className="w-5 h-5" />
@@ -475,19 +521,29 @@ const QuickChat: React.FC = () => {
                                 <Bot className="w-5 h-5" />
                               )}
                             </motion.div>
-                            <motion.div 
+                            <motion.div
                               className={`rounded-2xl p-4 shadow-lg backdrop-blur-sm ${
                                 message.sender === 'user'
                                   ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
                                   : 'bg-white text-gray-800 border border-gray-200'
                               }`}
                               whileHover={{ scale: 1.02 }}
-                              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                              transition={{
+                                type: 'spring',
+                                stiffness: 400,
+                                damping: 10,
+                              }}
                             >
-                              <p className="text-sm leading-relaxed">{message.text}</p>
-                              <p className={`text-xs mt-2 ${
-                                message.sender === 'user' ? 'text-purple-200' : 'text-gray-500'
-                              }`}>
+                              <p className="text-sm leading-relaxed">
+                                {message.text}
+                              </p>
+                              <p
+                                className={`text-xs mt-2 ${
+                                  message.sender === 'user'
+                                    ? 'text-purple-200'
+                                    : 'text-gray-500'
+                                }`}
+                              >
                                 {formatTime(message.timestamp)}
                               </p>
                             </motion.div>
@@ -495,7 +551,7 @@ const QuickChat: React.FC = () => {
                         </motion.div>
                       ))}
                     </AnimatePresence>
-                    
+
                     {/* Enhanced Typing Indicator */}
                     <AnimatePresence>
                       {isTyping && (
@@ -525,24 +581,26 @@ const QuickChat: React.FC = () => {
                                         duration: 1,
                                         repeat: Infinity,
                                         delay: i * 0.2,
-                                        ease: "easeInOut"
+                                        ease: 'easeInOut',
                                       }}
                                     />
                                   ))}
                                 </div>
-                                <span className="text-sm text-gray-600">AI is typing...</span>
+                                <span className="text-sm text-gray-600">
+                                  AI is typing...
+                                </span>
                               </div>
                             </div>
                           </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
-                    
+
                     <div ref={messagesEndRef} />
                   </div>
 
                   {/* Enhanced Input */}
-                  <motion.div 
+                  <motion.div
                     className="p-6 bg-white border-t border-gray-200"
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
@@ -560,7 +618,11 @@ const QuickChat: React.FC = () => {
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
                           disabled={isSending}
                           whileFocus={{ scale: 1.02 }}
-                          transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                          transition={{
+                            type: 'spring',
+                            stiffness: 400,
+                            damping: 10,
+                          }}
                         />
                         {inputMessage && (
                           <motion.div
@@ -580,12 +642,16 @@ const QuickChat: React.FC = () => {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         animate={isSending ? { rotate: [0, 360] } : {}}
-                        transition={isSending ? { duration: 1, repeat: Infinity, ease: "linear" } : { type: "spring", stiffness: 400, damping: 10 }}
+                        transition={
+                          isSending
+                            ? { duration: 1, repeat: Infinity, ease: 'linear' }
+                            : { type: 'spring', stiffness: 400, damping: 10 }
+                        }
                       >
                         <Send className="w-5 h-5" />
                       </motion.button>
                     </div>
-                    <motion.p 
+                    <motion.p
                       className="text-xs text-gray-500 mt-3 text-center flex items-center justify-center"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -599,7 +665,7 @@ const QuickChat: React.FC = () => {
                         transition={{
                           duration: 2,
                           repeat: Infinity,
-                          ease: "easeInOut"
+                          ease: 'easeInOut',
                         }}
                       />
                       Messages are sent to our support team

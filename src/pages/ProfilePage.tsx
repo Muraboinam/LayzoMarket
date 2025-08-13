@@ -225,27 +225,6 @@ const ProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Account Stats */}
-              <div className="mt-8 bg-white/10 backdrop-blur-sm rounded-lg border border-purple-300/20 p-6 shadow-lg">
-                <h3 className="text-xl font-semibold text-white mb-6">Account Statistics</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center p-4 bg-white/5 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-400 mb-1">0</div>
-                    <div className="text-purple-200 text-sm">Total Orders</div>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-white/5 rounded-lg">
-                    <div className="text-2xl font-bold text-indigo-400 mb-1">0</div>
-                    <div className="text-purple-200 text-sm">Downloads</div>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-white/5 rounded-lg">
-                    <div className="text-2xl font-bold text-pink-400 mb-1">₹0</div>
-                    <div className="text-purple-200 text-sm">Total Spent</div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
